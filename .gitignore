@@ -1,0 +1,8 @@
+.env
+__pycache__/
+.venv/
+logs/
+data/raw/
+*.onnx
+*.pkl
+node_modules/
