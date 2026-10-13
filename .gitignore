@@ -6,3 +6,4 @@ data/raw/
 *.onnx
 *.pkl
 node_modules/
+data/*.csv
