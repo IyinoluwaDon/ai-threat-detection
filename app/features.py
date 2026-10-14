@@ -6,7 +6,8 @@ from urllib.parse import unquote_plus
 SQL_KW = re.compile(r"(?i)\b(select|union|insert|update|delete|drop|sleep|benchmark|where|from|having|waitfor|exec|cast|concat|substring|version)\b")
 XSS_KW = re.compile(r"(?i)(script|javascript|onerror|onload|onfocus|ontoggle|onpageshow|<svg|<img|<iframe)")
 TOOL_UA = re.compile(r"(?i)(curl|sqlmap|nikto|wget|python-requests|hydra|nmap|gobuster|masscan|zgrab|dirbuster)")
-SENSITIVE = re.compile(r"(?i)(\.env|\.git|wp-login|wp-admin|phpmyadmin|cgi-bin|actuator|\.php|passwd|boot\.ini|etc/|credentials|xmlrpc|backup|server-status)")
+SENSITIVE = re.compile(r"(?i)(\.env|\.git|wp-login|wp-admin|wp-content|phpmyadmin|cgi-bin|actuator|\.php|passwd|boot\.ini|etc/|credentials|xmlrpc|backup|server-status|solr|vendor/|\.ds_store|web-inf|jmx-console|heapdump|struts|id_rsa|dump\.sql)")
+NOSQL = re.compile(r"(?i)(\[\$\w+\]|\$(ne|gt|gte|lt|lte|regex|where|in|nin|or|and)\b)")
 
 FEATURES = [
     "path_len", "query_len", "num_params", "max_param_len",
@@ -14,6 +15,7 @@ FEATURES = [
     "pct_count", "double_enc", "dotdot", "quotes", "angles",
     "sql_kw", "xss_kw", "sql_comment", "sensitive_path",
     "is_post", "depth", "ua_len", "ua_tool", "ua_empty",
+    "nosql_op", "scheme_in_query", "proto_rel", "at_sign", "enc_ratio", "semicolon",
 ]
 
 
@@ -55,5 +57,11 @@ def extract(record: dict) -> list[float]:
         "ua_len": len(ua),
         "ua_tool": int(bool(TOOL_UA.search(ua))),
         "ua_empty": int(ua in ("", "-")),
+        "nosql_op": len(NOSQL.findall(dec)),
+        "scheme_in_query": dec.partition("?")[2].count("://"),
+        "proto_rel": int(bool(re.search(r"=\s*//", dec))),
+        "at_sign": dec.count("@"),
+        "enc_ratio": raw.count("%") / max(len(raw), 1),
+        "semicolon": dec.count(";"),
     }
     return [float(vals[f]) for f in FEATURES]
