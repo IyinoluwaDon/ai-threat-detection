@@ -86,6 +86,27 @@ RECON_PATHS = ["/.env", "/.git/config", "/wp-login.php", "/phpmyadmin/", "/admin
                "/config.php.bak", "/xmlrpc.php", "/.aws/credentials"]
 RECON = [lambda: ("GET", random.choice(RECON_PATHS), None)]
 
+# --- round 2: families holdout v1 showed were missing (instances differ from both holdout sets) ---
+BENIGN.extend([
+    lambda: ("GET", f"/login?next=%2F{w()}%2F{w()}", None),
+    lambda: ("GET", f"/search?q={w()}%20{w()}%2C%20{w()}", None),
+    lambda: ("GET", f"/settings?section={w()}&lang=en%2DNG", None),
+    lambda: ("GET", f"/files/{w()}_{n()}.pdf", None),
+])
+EVASIVE.extend([
+    lambda: ("GET", f"/api/items?price[$gt]={random.randint(0, 5)}", None),
+    lambda: ("GET", f"/api/auth?email[$regex]=.*&password[$ne]={n()}", None),
+    lambda: ("GET", "/users?filter[$where]=sleep(5000)", None),
+    lambda: ("GET", f"/redirect?url=//{w()}.example.org/{w()}", None),
+    lambda: ("GET", f"/login?next=https://{w()}.example.com@bank.example", None),
+    lambda: ("GET", f"/item?id={n()};SELECT+pg_sleep({random.randint(3, 9)})--", None),
+    lambda: ("GET", f"/c?x=%22%3E%3Csvg+onload=confirm({n()})%3E", None),
+])
+RECON_PATHS.extend(["/wp-content/plugins/readme.txt", "/solr/admin/cores",
+                    "/vendor/composer/installed.json", "/.DS_Store", "/WEB-INF/web.xml",
+                    "/jmx-console/", "/actuator/heapdump", "/struts2-showcase/",
+                    "/id_rsa", "/dump.sql"])
+
 ATTACKS = {"classic": CLASSIC, "evasive": EVASIVE, "recon": RECON}
 
 
