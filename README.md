@@ -28,6 +28,9 @@ These requests come from the same templates as the training data, so treat them 
 check, not as accuracy. A Random Forest trained without any evasive samples still caught
 **66.1%** of them.
 
+**Caveat:** the round-3 rules were written after reading the generator's templates, so the
+rules-only recall on this synthetic set is inflated. Do not read it as real-world rule coverage.
+
 ### Hand-written holdout sets: the honest numbers
 
 Each set was written by hand before the change it measures. Cells are attacks detected / false positives.
