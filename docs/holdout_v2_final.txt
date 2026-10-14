@@ -1,0 +1,30 @@
+
+BENIGN v2 (want: ok)
+  ok                 /search?q=caf%C3%A9+near+yaba
+  ok                 /login?redirect=%2Fprofile%2Fedit
+  ALERT ml    0.52   /api/v2/products?filter=category%3Dphones&sort=price
+  ok                 /cart/add?sku=NG-4410&qty=2
+  ok                 /articles/2026/10/intro-to-zero-trust
+  ok                 /search?q=insert+coupon+code+at+checkout
+  ok                 /static/fonts/inter-var.woff2
+  ok                 /account/orders/88213/invoice.pdf
+  ok                 /api/search?term=drop+shipping+nigeria
+  ok                 /events?date=2026-10-20&city=Ikeja
+  ok                 /download/report-q3-2026.pdf
+  ok                 /profile?id=77&tab=security
+
+ATTACKS v2 (want: ALERT)
+  ALERT rules 0.28   /api/users?username[$regex]=^adm
+  ALERT both  0.74   /api/login?user[$ne]=x&pass[$ne]=x
+  ALERT rules 0.41   /go?next=//attacker.example/login
+  ALERT both  0.71   /out?target=https://evil.example.net@trusted.example
+  ALERT rules 0.13   /wp-includes/wlwmanifest.xml
+  ALERT rules 0.04   /jenkins/script
+  ALERT rules 0.04   /manager/html
+  ALERT rules 0.06   /.svn/entries
+  ALERT both  0.96   /product?id=5%20AND%201=CONVERT(int,(SELECT%20@@version))
+  ALERT both  0.86   /search?q=%22%3E%3Cscript%3Eprompt(document.domain)%3C/script%3E
+  ALERT both  0.88   /static/..%2f..%2f..%2fetc%2fshadow
+  ALERT both  0.72   /preview?url=http://[::ffff:127.0.0.1]/
+
+false positives: 1/12   detected: 12/12
