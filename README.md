@@ -4,7 +4,7 @@ Real-time web attack detection: Nginx-style access logs go in, scored alerts com
 on a live dashboard. Regex rules catch known patterns; an ML ensemble catches what the
 rules miss (evasive payloads, scanner recon).
 
-**Status:** working end to end (Day 5 of 7). Next: screenshots, Wazuh integration notes.
+**Status:** working end to end (Day 6 of 7). Next: widen attack coverage, retest.
 
 ![Live dashboard](docs/dashboard.png)
 
@@ -35,6 +35,25 @@ python -m app.stub_server            # target, writes logs/access.log
 uvicorn app.api:app --port 8000      # engine + dashboard at http://localhost:8000
 python -m app.sim 60                 # demo traffic
 ```
+
+## Holdout evaluation (hand-written, outside the training templates)
+
+24 requests written by hand: 12 benign, 12 attacks (`app/holdout_eval.py`).
+
+| | Rules only | Rules + ML |
+|---|---|---|
+| Attacks detected | 4/12 (33%) | 8/12 (67%) |
+| False positives | 0/12 | 1/12 |
+
+**What it showed**
+- The layers complement each other: a Windows path traversal was caught by rules only
+  (ML scored 0.20), while `DROP TABLE` and a PHP stream wrapper were caught by ML only.
+- Misses: WordPress plugin recon, Solr admin recon, NoSQL operator injection, open redirect.
+  None of these families exist in the training generator.
+- The one false positive was a percent-encoded `next=` parameter (score 0.52 vs a 0.5
+  threshold); the benign training data had no percent-encoded values.
+
+Real-world accuracy is expected to be closer to this table than to the synthetic one above.
 
 ## Limitations
 
