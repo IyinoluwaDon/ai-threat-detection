@@ -41,9 +41,12 @@ Each set was written by hand before the change it measures. Cells are attacks de
 | v2 (12 benign, 12 attacks) | 5/12 / 0/12 | 6/12 / 1/12 | 12/12 / 1/12 |
 | **v3 (12 benign, 14 attacks)** | n/a | 6/14 / 2/12 | **11/14 / 2/12** |
 
-v1 and v2 became development sets once I used their misses to drive the next round, so **v3 is
-the headline number**. Its attack list includes 4 families the engine was deliberately not built
-for (template injection, command injection, LDAP injection, CRLF injection).
+v1 and v2 became development sets once I used their misses to drive the next round. v3 was
+written before the round-3 rules, but by the same author in the same session, and 10 of its 14
+attacks target families those rules were built for. Read the round-3 jump as "signature rules
+catch the signatures they were written for", not as generalization. The better generalization
+signal is the 4 families deliberately left uncovered (template, command, LDAP and CRLF
+injection): the engine missed 3 of the 4.
 
 ### What the iterations showed
 - ML features alone barely moved the holdout numbers: round 2 gained one attack and cost one
