@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Threat Detection Engine</title>
+<style>
+:root{--bg:#0b0e11;--panel:#12161b;--border:#232a32;--text:#e4e7ea;--muted:#7c8792;
+--blue:#4a9edb;--red:#d65d4a;--amber:#d6a24a;--green:#5fae8c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:13px/1.5 ui-monospace,"JetBrains Mono",monospace}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 24px;border-bottom:1px solid var(--border)}
+h1{margin:0;font-size:15px;font-weight:600}
+#status{color:var(--muted)} #status.on{color:var(--green)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
+.card{background:var(--panel);padding:14px 24px}
+.card b{display:block;font-size:24px;font-weight:600}
+.card span{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+.layout{display:grid;grid-template-columns:1fr 240px}
+@media(max-width:800px){.layout{grid-template-columns:1fr}}
+.table{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:6px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+th{color:var(--muted);font-weight:500;font-size:11px;text-transform:uppercase}
+td.path{white-space:normal;word-break:break-all;max-width:480px}
+.critical{color:var(--red);font-weight:600}.high{color:var(--amber)}.medium{color:var(--blue)}
+aside{padding:14px 18px;border-left:1px solid var(--border)}
+aside h2{font-size:11px;color:var(--muted);text-transform:uppercase;margin:0 0 8px}
+aside li{display:flex;justify-content:space-between;list-style:none;padding:2px 0}
+ul{margin:0;padding:0}
+</style>
+</head>
+<body>
+<header><h1>THREAT DETECTION ENGINE</h1><div id="status">connecting...</div></header>
+<div class="cards">
+  <div class="card"><b id="total">0</b><span>Total alerts</span></div>
+  <div class="card"><b id="critical" class="critical">0</b><span>Critical</span></div>
+  <div class="card"><b id="high" class="high">0</b><span>High</span></div>
+  <div class="card"><b id="medium" class="medium">0</b><span>Medium</span></div>
+  <div class="card"><b id="ml">0</b><span>ML-only catches</span></div>
+</div>
+<div class="layout">
+  <div class="table"><table>
+    <thead><tr><th>Time</th><th>Sev</th><th>Score</th><th>Source</th><th>Rules</th><th>IP</th><th>Request</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table></div>
+  <aside><h2>Top source IPs</h2><ul id="ips"></ul></aside>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+// Attacker payloads are untrusted: always use textContent, never innerHTML.
+function cell(tr, text, cls){const td=document.createElement("td");td.textContent=text;if(cls)td.className=cls;tr.appendChild(td);}
+function addRow(a, prepend){
+  const tr=document.createElement("tr");
+  cell(tr,a.ts.slice(11)); cell(tr,a.severity,a.severity); cell(tr,Number(a.score).toFixed(2));
+  cell(tr,a.source); cell(tr,a.rules.join(", ")||"-"); cell(tr,a.ip); cell(tr,a.method+" "+a.path,"path");
+  const rows=$("rows"); prepend?rows.prepend(tr):rows.appendChild(tr);
+  while(rows.children.length>200) rows.lastChild.remove();
+}
+async function refreshStats(){
+  const s=await (await fetch("/api/stats")).json();
+  $("total").textContent=s.total;
+  for(const k of ["critical","high","medium"]) $(k).textContent=s.by_severity[k]||0;
+  $("ml").textContent=s.by_source.ml||0;
+  const ul=$("ips"); ul.replaceChildren();
+  for(const t of s.top_ips){const li=document.createElement("li");
+    const a=document.createElement("span");a.textContent=t.ip;
+    const b=document.createElement("span");b.textContent=t.count;li.append(a,b);ul.appendChild(li);}
+}
+function connect(){
+  const ws=new WebSocket((location.protocol==="https:"?"wss://":"ws://")+location.host+"/ws");
+  ws.onopen=()=>{$("status").textContent="live";$("status").className="on";};
+  ws.onmessage=e=>{addRow(JSON.parse(e.data),true);refreshStats();};
+  ws.onclose=()=>{$("status").textContent="reconnecting...";$("status").className="";setTimeout(connect,2000);};
+  ws.onerror=()=>ws.close();
+}
+(async()=>{
+  const recent=await (await fetch("/api/alerts?limit=100")).json();
+  for(const a of recent) addRow(a,false);   // newest-first from the API
+  await refreshStats(); connect();
+})();
+</script>
+</body>
+</html>
