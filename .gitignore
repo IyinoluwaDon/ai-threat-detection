@@ -7,3 +7,5 @@ data/raw/
 *.pkl
 node_modules/
 data/*.csv
+models/*.joblib
+models/*.joblib
