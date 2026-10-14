@@ -1,0 +1,30 @@
+
+BENIGN (want: ok)
+  ok                 /search?q=select+the+best+laptop+from+jumia
+  ALERT ml    0.52   /api/v1/users/1042/orders?status=shipped&sort=-created_at
+  ok                 /static/js/app.min.js?v=3.2.1
+  ok                 /blog/2026/10/how-to-secure-ssh-keys
+  ok                 /login?next=%2Fdashboard%2Fsettings
+  ok                 /search?q=C%2B%2B+tutorial
+  ok                 /products?category=laptops&price_min=100000&price_max=500000
+  ok                 /images/photo_2026-10-14_08.31.jpg
+  ok                 /api/health
+  ok                 /search?q=union+of+nigerian+students
+  ok                 /docs/api#authentication
+  ok                 /search?q=what%27s+the+weather+in+lagos
+
+ATTACKS (want: ALERT)
+  ALERT both  0.80   /rest/products/search?q=%27))%20UNION%20SELECT%20username,password%20FROM%20users--
+  ALERT ml    0.78   /index.php?page=php://filter/convert.base64-encode/resource=config
+  ALERT both  0.79   /?name=%3Csvg/onload=alert(1)%3E
+  ALERT ml    0.57   /api/users?id=1;DROP%20TABLE%20users
+  ALERT rules 0.34   /admin/../../../../windows/win.ini
+  ALERT ml    0.79   /wp-content/plugins/x/readme.txt
+  ALERT ml    0.83   /vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php
+  ALERT ml    0.79   /.git/HEAD
+  ALERT ml    0.73   /solr/admin/info/system
+  ok                 /api/v1/users?filter[$ne]=null
+  ok                 /redirect?url=//evil.example.com
+  ALERT both  0.71   /download?file=....//....//etc/passwd
+
+false positives: 1/12   detected: 10/12

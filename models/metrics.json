@@ -1,8 +1,8 @@
 {
   "rules": {
     "precision": 1.0,
-    "recall": 0.3653,
-    "f1": 0.5352
+    "recall": 0.4533,
+    "f1": 0.6239
   },
   "random_forest": {
     "precision": 1.0,
@@ -10,29 +10,29 @@
     "f1": 1.0
   },
   "isolation_forest": {
-    "precision": 0.8909,
-    "recall": 0.7947,
-    "f1": 0.84
+    "precision": 0.8946,
+    "recall": 0.7013,
+    "f1": 0.7862
   },
   "ensemble": {
-    "precision": 1.0,
-    "recall": 0.9987,
+    "precision": 0.9987,
+    "recall": 1.0,
     "f1": 0.9993
   },
-  "ensemble_false_positive_rate": 0.0,
+  "ensemble_false_positive_rate": 0.0013,
   "recall_by_category": {
     "classic": {
       "rules": 1.0,
       "ensemble": 1.0
     },
     "evasive": {
-      "rules": 0.0,
-      "ensemble": 0.9969
+      "rules": 0.1329,
+      "ensemble": 1.0
     },
     "recon": {
       "rules": 0.0,
       "ensemble": 1.0
     }
   },
-  "unseen_evasive_recall_rf": 0.7407
+  "unseen_evasive_recall_rf": 0.6608
 }
