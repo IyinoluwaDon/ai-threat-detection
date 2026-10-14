@@ -104,7 +104,7 @@ def main(out="data/real.csv"):
         print("  python -m app.real_data --out data/real.csv")
         return
     os.makedirs(os.path.dirname(out), exist_ok=True)
-    with open(out, "w", newline="") as f:
+    with open(out, "w", newline="", encoding="utf-8") as f:
         wr = csv.DictWriter(f, fieldnames=list(reqs[0].keys()))
         wr.writeheader()
         wr.writerows(reqs)

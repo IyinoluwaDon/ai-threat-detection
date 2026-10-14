@@ -14,7 +14,7 @@ from app.model import THRESHOLD, Scorer
 
 def load(path="data/dataset.csv"):
     X, y, cat, rules = [], [], [], []
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         for r in csv.DictReader(f):
             X.append([float(r.get(k, 0.0)) for k in FEATURES])
             y.append(int(r["label"]))
@@ -24,7 +24,7 @@ def load(path="data/dataset.csv"):
     real_test = None
     if os.path.exists("data/real.csv"):
         Xr, yr, catr, rulesr, splitr = [], [], [], [], []
-        with open("data/real.csv") as f:
+        with open("data/real.csv", encoding="utf-8") as f:
             for r in csv.DictReader(f):
                 Xr.append([float(r.get(k, 0.0)) for k in FEATURES])
                 yr.append(int(r["label"]))
