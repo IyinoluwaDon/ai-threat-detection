@@ -30,6 +30,33 @@ RULES = {
         r"(?i)\$\{\$\{",
     ],
 }
+RULES["sqli"] += [
+    r"(?i)@@version",
+    r"(?i)\b(pg_sleep|benchmark)\s*\(",
+    r"(?i)\bwaitfor\s+delay\b",
+    r"(?i);\s*(drop|shutdown|insert|update|delete)\b",
+    r"(?i)\border\s+by\s+\d+",
+]
+RULES["ssrf"] += [
+    r"(?i)[?&]\w+=https?://(\[|\d{8,10}(?=[/&\s]|$))",
+]
+RULES.update({
+    "nosql_injection": [
+        r"(?i)\[\$(ne|gt|gte|lt|lte|regex|where|in|nin|or|and|exists)\]",
+    ],
+    "open_redirect": [
+        r"(?i)[?&](url|uri|next|redirect|redirect_uri|return|returnto|goto|target|dest|continue)=(https?:)?//[^&/]*@",
+        r"(?i)[?&](url|uri|next|redirect|redirect_uri|return|returnto|goto|continue)=//[^/\s]",
+    ],
+    "recon": [
+        r"(?i)/\.(git|svn|hg|env|ds_store|aws|ssh)(/|\s|\?|$)",
+        r"(?i)/(wp-(admin|login\.php|includes|content/plugins)|xmlrpc\.php|phpmyadmin|pma|adminer)",
+        r"(?i)/(jenkins|manager/html|jmx-console|web-console|solr/admin|actuator|server-status|server-info)",
+        r"(?i)/(WEB-INF|META-INF)/",
+        r"(?i)/(backup|dump|db|database)\.(sql|zip|tar|gz|bak)\b",
+        r"(?i)\.(bak|old|orig|swp)(\?|\s|$)",
+    ],
+})
 COMPILED = {k: [re.compile(p) for p in v] for k, v in RULES.items()}
 
 
