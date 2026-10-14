@@ -1,0 +1,32 @@
+
+BENIGN v3 (want: ok)
+  ok                 /login?next=%2Faccount%2Fbilling
+  ok                 /search?q=update+your+profile+settings
+  ok                 /shop?cat=books&sort=price_asc&page=3
+  ok                 /blog/benchmark-results-2026
+  ok                 /api/v1/orders/9921/track
+  ALERT ml    0.60   /redirect?url=https://www.jumia.com.ng/phones
+  ok                 /search?q=how+to+order+by+phone
+  ok                 /images/hero%20banner.png
+  ok                 /profile/edit?tab=notifications&saved=1
+  ALERT ml    0.64   /wp-content/uploads/2026/10/cover.jpg
+  ok                 /api/search?q=select+committee+report
+  ok                 /docs/getting-started#install
+
+ATTACKS v3 (want: ALERT)
+  ALERT ml    0.60   /api/orders?status[$in][]=paid
+  ok                 /search?q[$where]=this.password.length>0
+  ok                 /auth?return=//phish.example/login
+  ALERT ml    0.81   /click?url=https://good.example.org@evil.example.io/x
+  ALERT ml    0.72   /blog/wp-admin/install.php
+  ok                 /.hg/store/data
+  ok                 /web-console/
+  ok                 /database.sql
+  ALERT ml    0.73   /item?id=3;SHUTDOWN--
+  ALERT ml    0.85   /proxy?url=http://2852039166/latest/meta-data
+  ok                 /greet?name={{7*7}}
+  ok                 /ping?host=8.8.8.8%7Cid
+  ok                 /lookup?user=*)(uid=*))(|(uid=*
+  ALERT ml    0.69   /set?lang=en%0d%0aSet-Cookie:%20admin=true
+
+false positives: 2/12   detected: 6/14
