@@ -6,6 +6,8 @@ rules miss (evasive payloads, scanner recon).
 
 **Status:** working end to end (Day 5 of 7). Next: screenshots, Wazuh integration notes.
 
+![Live dashboard](docs/dashboard.png)
+
 ## Pipeline
 
 ## Results (synthetic dataset, 6000 rows, 25% held-out)
