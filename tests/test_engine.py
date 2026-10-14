@@ -32,6 +32,7 @@ def test_evasive_attack_caught_by_ml_only(engine):
     assert a and a["source"] == "ml" and a["rules"] == []
 
 
-def test_recon_caught_by_ml(engine):
+def test_recon_caught_by_rules_and_ml(engine):
+    # round 3 added a recon rule, so rules and ML now agree on /.env
     a = engine.analyze(rec("/.env"))
-    assert a and a["source"] == "ml"
+    assert a and a["source"] == "both"
