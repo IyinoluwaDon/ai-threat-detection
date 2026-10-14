@@ -4,26 +4,51 @@ Real-time web attack detection: Nginx-style access logs go in, scored alerts com
 on a live dashboard. Regex rules catch known patterns; an ML ensemble catches what the
 rules miss (evasive payloads, scanner recon).
 
-**Status:** working end to end (Day 6 of 7). Next: widen attack coverage, retest.
+**Status:** complete (Day 7 of 7). Detection beyond the covered families is future work.
 
 ![Live dashboard](docs/dashboard.png)
 
 ## Pipeline
 
-## Results (synthetic dataset, 6000 rows, 25% held-out)
+## Results
+
+### Synthetic dataset (6000 rows, 25% held out): optimistic by design
 
 | Model | Precision | Recall | F1 |
 |---|---|---|---|
-| Rules only | 1.000 | 0.365 | 0.535 |
-| Random Forest | 1.000 | 1.000 | 1.000 |
-| Isolation Forest | 0.891 | 0.795 | 0.840 |
-| **Ensemble (0.7 RF + 0.3 IF)** | 1.000 | 0.999 | 0.999 |
+| Rules only | 1.0 | 0.796 | 0.8864 |
+| Random Forest | 1.0 | 1.0 | 1.0 |
+| Isolation Forest | 0.8946 | 0.7013 | 0.7862 |
+| **Ensemble (0.7 RF + 0.3 IF)** | 0.9987 | 1.0 | 0.9993 |
 
-Recall by attack family (rules -> ensemble): classic 100% -> 100%, **evasive 0% -> 99.7%**,
-**recon 0% -> 100%**. False positives on benign traffic: 0%.
+Recall by family (rules -> ensemble): classic 100.0% -> 100.0%,
+evasive 56.3% -> 100.0%,
+recon 82.7% -> 100.0%.
+These requests come from the same templates as the training data, so treat them as a pipeline
+check, not as accuracy. A Random Forest trained without any evasive samples still caught
+**66.1%** of them.
 
-**Unseen-family test:** a Random Forest trained without any evasive samples still catches
-**74%** of them, which is the more honest generalization figure.
+### Hand-written holdout sets: the honest numbers
+
+Each set was written by hand before the change it measures. Cells are attacks detected / false positives.
+
+| Set | Round 1 (rules + 22 features) | Round 2 (+6 features, wider data) | Round 3 (+ deterministic rules) |
+|---|---|---|---|
+| v1 (12 benign, 12 attacks) | 8/12 / 1/12 | 10/12 / 1/12 | 12/12 / 1/12 |
+| v2 (12 benign, 12 attacks) | 5/12 / 0/12 | 6/12 / 1/12 | 12/12 / 1/12 |
+| **v3 (12 benign, 14 attacks)** | n/a | 6/14 / 2/12 | **11/14 / 2/12** |
+
+v1 and v2 became development sets once I used their misses to drive the next round, so **v3 is
+the headline number**. Its attack list includes 4 families the engine was deliberately not built
+for (template injection, command injection, LDAP injection, CRLF injection).
+
+### What the iterations showed
+- ML features alone barely moved the holdout numbers: round 2 gained one attack and cost one
+  false alarm. The misses were specific strings (admin panel paths, `[$ne]` operators), which
+  are a lookup problem, not a statistical one.
+- Splitting the work fixed it: deterministic rules for known signatures, ML for obfuscation
+  and unusual structure. In round 3 the new rules added no false positives.
+- The layers cover each other: some attacks only rules catch, others only ML.
 
 ## Run
 
@@ -36,29 +61,15 @@ uvicorn app.api:app --port 8000      # engine + dashboard at http://localhost:80
 python -m app.sim 60                 # demo traffic
 ```
 
-## Holdout evaluation (hand-written, outside the training templates)
-
-24 requests written by hand: 12 benign, 12 attacks (`app/holdout_eval.py`).
-
-| | Rules only | Rules + ML |
-|---|---|---|
-| Attacks detected | 4/12 (33%) | 8/12 (67%) |
-| False positives | 0/12 | 1/12 |
-
-**What it showed**
-- The layers complement each other: a Windows path traversal was caught by rules only
-  (ML scored 0.20), while `DROP TABLE` and a PHP stream wrapper were caught by ML only.
-- Misses: WordPress plugin recon, Solr admin recon, NoSQL operator injection, open redirect.
-  None of these families exist in the training generator.
-- The one false positive was a percent-encoded `next=` parameter (score 0.52 vs a 0.5
-  threshold); the benign training data had no percent-encoded values.
-
-Real-world accuracy is expected to be closer to this table than to the synthetic one above.
-
 ## Limitations
 
-- The dataset is synthetic and templated (`app/gen_dataset.py`), so near-perfect scores
-  describe this distribution, not real-world traffic. Expect lower numbers on live logs.
-- Alert storage is SQLite and fan-out is in-process; the `Store` class isolates the swap to
-  Postgres/Redis.
-- ONNX export is planned; models are currently served with joblib.
+- The synthetic dataset is templated, so its near-perfect scores describe that distribution only.
+  The hand-written holdout sets are small (12 to 14 attacks), so one request moves a number by
+  about 8 points. Treat them as indicative, not statistical.
+- Known false positives (ML layer, score about 0.6): a legitimate redirect to a full URL, and a
+  `wp-content/uploads` image. Both likely trace to round-2 features and have not been tuned
+  away, to keep the v3 evaluation honest.
+- Not covered: template injection, command injection, LDAP injection. Features and rules for
+  them were not built.
+- Alert storage is SQLite and fan-out is in-process; `Store` isolates a swap to Postgres/Redis.
+- ONNX export is planned; models are served with joblib.
